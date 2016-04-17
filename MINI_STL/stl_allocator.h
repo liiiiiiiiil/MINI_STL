@@ -15,6 +15,12 @@ namespace MINI_STL{
 		typedef const T&  const_reference;
 		typedef size_t size_type;
 		typedef ptrdiff_t difference_type;
+		template <class _Other>
+		struct rebind
+		{
+			typedef allocator<_Other> other;
+		};
+
 	public:
 		static T* allocate();
 		static T* allocate(size_t n);
@@ -24,6 +30,7 @@ namespace MINI_STL{
 		static void construct(T* ptr, const T& value);
 		static void destroy(T* ptr);
 		static void destroy(T* first, T* last);
+		static void 
 	};
 	template<class T>
 	T* allocator<T>::allocate(){

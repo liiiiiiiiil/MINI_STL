@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClInclude Include="alloc_test.h" />
     <ClInclude Include="deque.h" />
+    <ClInclude Include="deque.impl.h" />
     <ClInclude Include="Detail\list.impl.h" />
     <ClInclude Include="Detail\vector.impl.h" />
     <ClInclude Include="list.h" />
