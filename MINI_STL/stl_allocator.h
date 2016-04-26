@@ -30,7 +30,6 @@ namespace MINI_STL{
 		static void construct(T* ptr, const T& value);
 		static void destroy(T* ptr);
 		static void destroy(T* first, T* last);
-		static void 
 	};
 	template<class T>
 	T* allocator<T>::allocate(){

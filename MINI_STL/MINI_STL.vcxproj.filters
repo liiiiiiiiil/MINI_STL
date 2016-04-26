@@ -72,6 +72,12 @@
     <ClInclude Include="stl_testUtil.h">
       <Filter>test</Filter>
     </ClInclude>
+    <ClInclude Include="deque1.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="deque1.impl.h">
+      <Filter>detail</Filter>
+    </ClInclude>
     <ClInclude Include="deque.h">
       <Filter>头文件</Filter>
     </ClInclude>

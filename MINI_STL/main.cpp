@@ -5,9 +5,9 @@
 
 
 int main(){
-	//MINI_STL::AllocTest::testAll();
+	MINI_STL::AllocTest::testAll();
 	//MINI_STL::VecTest::testAll();
-	MINI_STL::LIST_TEST::testAll();
+	/*MINI_STL::LIST_TEST::testAll();*/
 
 	return 0;
 }

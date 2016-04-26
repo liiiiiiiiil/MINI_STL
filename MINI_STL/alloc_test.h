@@ -19,6 +19,7 @@ namespace MINI_STL{
 		template<class T,class Alloc>
 		v<T,Alloc>::v(const value_type& value){
 			T* p=static_cast<T*>(allocator::allocate(VALUE_NUM));
+			auto tempPtr = p + VALUE_NUM;
 			MINI_STL::uninitialized_fill_n(p,VALUE_NUM,value);
 			return;
 		}
