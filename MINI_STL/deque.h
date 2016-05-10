@@ -10,6 +10,7 @@
 #include "stl_algorithm.h"
 #include "stl_type_traits.h"
 #include "stl_allocator.h"
+#include "stl_uninitialized.h"
 
 namespace MINI_STL{
 	template <class T, class Alloc = allocator<T>>
@@ -24,7 +25,7 @@ namespace MINI_STL{
 			typedef     
 			typedef     deque_it<T>            self;
 			typedef     T**                           map_pointer;
-			typedef      
+   
 			T* cur;
 			T* first;
 			T* last;
@@ -59,7 +60,7 @@ namespace MINI_STL{
 			self operator+(difference_type n);
 			self& operator -= (difference_type n);
 			self operator-(difference_type n);
-			reference operator[](difference_type n)const;
+			reference operator[](difference_type n)const{ return *(*this + n); }
 		private:
 			size_t buffer_size(){
 				return MINI_STL::BUFFER_SIZE;
@@ -74,22 +75,56 @@ namespace MINI_STL{
 	/*
 	start of deque
 	*/
-	template<class T, class Alloc>
+	template<class T, class Alloc=allocator<T>>
 	class deque{
 	private:
 		template <class T>
 		friend class DEQUE_IT::deque_it;
+	public:
+		typedef  T                                value_type;
+		typedef  T*                              pointer;
+		typedef  T&                            reference;
+		typedef  const pointer            const_pointer;
+		typedef  const reference      const_reference;
+		typedef  ptrdiff_t                     difference_type;
+		typedef  size_t                           size_type;
+		typedef  Alloc                        allocator_type;
+		typedef  DEQUE_IT::deque_it<T>       iterator;
+	protected:
+		typedef   pointer*                    map_pointer;
+		typedef   allocator<T>             data_allocator;
+		typedef   allocator<pointer>    map_allocator;
 	private:
-		typedef DEQUE_IT::deque_it<T>  iterator;
-		typedef size_t                            size_type;
+		size_type                   map_size;
+		iterator                      start;
+		iterator                      finish;
+		map_pointer              map;
+	public:
+		deque();
+		deque(size_type n, const_reference value);
+		deque(const_reference value);
+		template <class InputIterator>
+		deque(InputIterator first, InputIterator last);
+		deque(const deque& other);
+		~deque();
+	public:
+		size_t size();
 	private:
-		size_type  map_size:
-		size_type  buffer_size;
-
+		size_type  map_init_size()const{
+			return FIRST_MAP_SIZE;
+		}
+		pointer allocate_node();
+		void  create_map_and_nodes(size_type n=0);
+		void  fill_initialize(size_type n, const_reference value);
+		template <class InputIterator>
+		void copy_initialize(InputIterator first, InputIterator last);
+		template <class InputIterator>
+		void deque_aux(InputIterator first, InputIterator last, std::false_type);
+		void deque_aux(size_type n, const_reference value, std::true_type);
 
 	};
 	static const enum{BUFFER_SIZE=20};
-	static const enum{FIRST_MAP_SIZE=5};
+	static const enum{FIRST_MAP_SIZE=8};
 }
 #include "deque.impl.h"
 #endif
