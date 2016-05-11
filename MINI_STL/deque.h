@@ -106,9 +106,12 @@ namespace MINI_STL{
 		template <class InputIterator>
 		deque(InputIterator first, InputIterator last);
 		deque(const deque& other);
+		deque& operator=(const deque& other);
 		~deque();
 	public:
 		size_t size();
+		bool operator==(const deque& other);
+		bool operator!=(const deque& other);
 	private:
 		size_type  map_init_size()const{
 			return FIRST_MAP_SIZE;
@@ -121,7 +124,11 @@ namespace MINI_STL{
 		template <class InputIterator>
 		void deque_aux(InputIterator first, InputIterator last, std::false_type);
 		void deque_aux(size_type n, const_reference value, std::true_type);
-
+	public:
+		template <class T,class Alloc>
+		friend bool operator==(const deque<T, Alloc>&lhs, const deque<T, Alloc>&rhs);
+		template <class T, class Alloc>
+		friend bool operator!=(const deque<T, Alloc>&lhs, const deque<T, Alloc>&rhs);
 	};
 	static const enum{BUFFER_SIZE=20};
 	static const enum{FIRST_MAP_SIZE=8};

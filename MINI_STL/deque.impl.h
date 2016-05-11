@@ -87,9 +87,9 @@ namespace MINI_STL{
 	}
 	template <class T, class Alloc>
 	deque<T, Alloc>::deque(const deque& other){
-		size_t value_num = other.size();
+		size_t value_num = other.size(); 
 		create_map_and_nodes(value_num);
-		auto copy_pos = start.first + (map_size*BUFFER_SIZE / 2);
+		auto copy_pos = start + (map_size*BUFFER_SIZE / 2);
 		uninitialized_copy(first, last, copy_pos);
 		return;
 	}
@@ -103,7 +103,38 @@ namespace MINI_STL{
 		auto result=distance(start, finsh);//返回的是difference_type
 		return  (size_t)result;
 	}
+	template <class T, class Alloc>
+	/*写到这里，突然发现一个当初vector存在的一个问题，
+	如果当初vector的大小大于other，按照vector那样调用
+	operator=，是否可能出现内存泄漏？在此，是不是需要
+	需要析构原来的*/
+	deque<T, Alloc>& deque<T, Alloc>::operator=(const deque& other){
+		if (*this != other){
 
+		}
+		return *this;
+	}
+	template <class T, class Alloc>
+	bool deque<T, Alloc>::operator==(const deque& other){
+		if (this->size() != other.size())return false;
+		if (this->size() == 0 && other.size() == 0)return true;
+		auto first1 = this->start;
+		auto first2 = other.start;
+		auto last1 = this->finish;
+		auto last2 = other.finish;
+		while (first1 != last!&&first2 != last2){
+			if (*first1 != *first2){
+				return false;
+			}
+			++first1;
+			++first2;
+		}
+		return true;
+	}
+	template <class T, class Alloc>
+	bool deque<T, Alloc>::operator!=(const deque& other){
+		return !(*this == other);
+	}
 
 	/*下面是private函数*/
 	template <class T, class Alloc>
@@ -150,7 +181,15 @@ namespace MINI_STL{
 		start.cur = nfinish.first + n%BUFFER_SIZE;
 		return;
 	}
-
+	/*下面是friend 函数*/
+	template <class T, class Alloc>
+	friend bool operator==(const deque<T, Alloc>&lhs, const deque<T, Alloc>&rhs){
+		return lhs.operator==(rhs);
+	}
+	template <class T, class Alloc>
+	friend bool operator!=(const deque<T, Alloc>&lhs, const deque<T, Alloc>&rhs){
+		return !(lhs.operator==(rhs));
+	}
 
 
 }
