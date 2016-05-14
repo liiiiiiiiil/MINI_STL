@@ -110,12 +110,14 @@ namespace MINI_STL{
 		~deque();
 	public:
 		size_t size();
+		size_t capacity();
 		bool operator==(const deque& other);
 		bool operator!=(const deque& other);
 	private:
 		size_type  map_init_size()const{
 			return FIRST_MAP_SIZE;
 		}
+		void reallocate_map(size_type nodes_to_add, bool add_at_front);
 		pointer allocate_node();
 		void  create_map_and_nodes(size_type n=0);
 		void  fill_initialize(size_type n, const_reference value);

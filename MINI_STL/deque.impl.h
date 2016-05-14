@@ -87,10 +87,23 @@ namespace MINI_STL{
 	}
 	template <class T, class Alloc>
 	deque<T, Alloc>::deque(const deque& other){
+		iterator new_start, new_finish;
 		size_t value_num = other.size(); 
 		create_map_and_nodes(value_num);
-		auto copy_pos = start + (map_size*BUFFER_SIZE / 2);
-		uninitialized_copy(first, last, copy_pos);
+		new_start = start + (capacity() / 2);
+		new_finish=uninitialized_copy(first, last, new_start);
+		template <class T, class Alloc>
+		/*写到这里，突然发现一个当初vector存在的一个问题，
+		如果当初vector的大小大于other，按照vector那样调用
+		operator=，是否可能出现内存泄漏？在此，是不是需要
+		需要析构原来的*/
+		/*最后决定还是要先析构原来的内容*/
+		deque<T, Alloc>& deque<T, Alloc>::operator=(const deque& other){
+			if (*this != other){
+
+			}
+			return *this;
+		}
 		return;
 	}
 	template <class T,class Alloc>
@@ -99,21 +112,46 @@ namespace MINI_STL{
 		deque_aux(first, last, typename std::is_integral<InputIterator>::type())
 	}
 	template <class T, class Alloc>
+	/*写到这里，突然发现一个当初vector存在的一个问题，
+	如果当初vector的大小大于other，按照vector那样调用
+	operator=，是否可能出现内存泄漏？在此，是不是需要
+	需要析构原来的*/
+	/*最后决定还是要先析构原来的内容*/
+	deque<T, Alloc>& deque<T, Alloc>::operator=(const deque& other){
+		if (*this != other){
+			//iterator old_start = start, old_finish = finish;
+			//if (*this.capacity() > 2*other.size()){//容量足够，不需要另外申请空间（2倍）
+			//	iterator new_start, new_finish;
+			//	size_t value_num = other.size();
+			//	data_allocator::destroy(start, finish);
+			//	new_start = old_start + capacity() / 2;
+			//	new_finish = uninitialized_copy(other.start, other.finish, new_start);
+			//	start = new_start;
+			//	finish = new_finish;
+			//}
+			//else{//容量不够
+			//	
+			//}
+			while (start != finish){
+				data_allocator::destroy(start.cur);
+				data_allocator::desrtoy(finish.cur);
+				++start;
+			}
+
+		}
+		return *this;
+	}
+	template <class T, class Alloc>
 	size_t deque<T, Alloc>::size(){
 		auto result=distance(start, finsh);//返回的是difference_type
 		return  (size_t)result;
 	}
 	template <class T, class Alloc>
-	/*写到这里，突然发现一个当初vector存在的一个问题，
-	如果当初vector的大小大于other，按照vector那样调用
-	operator=，是否可能出现内存泄漏？在此，是不是需要
-	需要析构原来的*/
-	deque<T, Alloc>& deque<T, Alloc>::operator=(const deque& other){
-		if (*this != other){
-
-		}
-		return *this;
+	size_t deque<T, Alloc>::capacity(){
+		return map_size*BUFFER_SIZE;
 	}
+
+	
 	template <class T, class Alloc>
 	bool deque<T, Alloc>::operator==(const deque& other){
 		if (this->size() != other.size())return false;
@@ -137,6 +175,31 @@ namespace MINI_STL{
 	}
 
 	/*下面是private函数*/
+	template <class T, class Alloc>
+	void deque<T, Alloc>::reallocate_map(size_type node_to_add, bool add_at_front){//如果map的node不足
+		size_type old_num_nodes = finish.node - start.node + 1;
+		size_type new_num_nodes = node_to_add + old_num_nodes;
+		map_pointer new_nstart;
+		if (map_size > 2 * new_num_nodes){
+			new_nstart = map + (map_size - new_num_nodes) / 2 + (add_at_front ? node_to_add : 0);
+			if (new_nstart < start.node){
+				uninitialized_copy(start.node, finish.node, new_nstart);
+			}
+			else
+				uninitialized_copy_backward(start.node, finish.node, new_nstart + old_num_nodes);
+		}
+		else{
+			size_type new_map_size = map_size + max(map_size, node_to_add) + 2;
+			map_pointer new_map = map_allocator::allocate(new_map_size);
+			new_nstart = new_map + (new_map_size - new_num_nodes) / 2 + (add_at_front ? node_to_add : 0);
+			copy(start.node, finish.node, new_nstart);
+			map_allocator::deallocate(map, map_size);
+			map = new_map;
+			map_size = new_map_size;
+		}
+		start.set_node(new_nstart);
+		finish.set_node(new_nstart + old_num_nodes - 1);
+	}
 	template <class T, class Alloc>
 	template<class InputIterator>
 	void deque<T, Alloc>::deque_aux(InputIterator first, InputIterator last, std::false_type){
