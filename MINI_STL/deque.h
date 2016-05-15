@@ -113,12 +113,15 @@ namespace MINI_STL{
 		size_t capacity();
 		bool operator==(const deque& other);
 		bool operator!=(const deque& other);
+		void push_back(const_reference value);
+		void push_front(const_reference value);
+		void pop_front();
+		void pop_back();
 	private:
 		size_type  map_init_size()const{
 			return FIRST_MAP_SIZE;
 		}
 		void reallocate_map(size_type nodes_to_add, bool add_at_front);
-		pointer allocate_node();
 		void  create_map_and_nodes(size_type n=0);
 		void  fill_initialize(size_type n, const_reference value);
 		template <class InputIterator>
@@ -126,6 +129,12 @@ namespace MINI_STL{
 		template <class InputIterator>
 		void deque_aux(InputIterator first, InputIterator last, std::false_type);
 		void deque_aux(size_type n, const_reference value, std::true_type);
+		void push_back_aux(const_reference value);
+		void push_front_aux(const_reference value);
+		void pop_front_aux();
+		void pop_back_aux();
+		void reserve_map_at_back(size_type nodes_to_add);//检查pushback是否需要扩充map
+		void reserve_map_at_front(size_type nodes_to_add);
 	public:
 		template <class T,class Alloc>
 		friend bool operator==(const deque<T, Alloc>&lhs, const deque<T, Alloc>&rhs);

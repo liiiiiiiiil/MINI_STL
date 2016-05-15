@@ -119,25 +119,15 @@ namespace MINI_STL{
 	/*最后决定还是要先析构原来的内容*/
 	deque<T, Alloc>& deque<T, Alloc>::operator=(const deque& other){
 		if (*this != other){
-			//iterator old_start = start, old_finish = finish;
-			//if (*this.capacity() > 2*other.size()){//容量足够，不需要另外申请空间（2倍）
-			//	iterator new_start, new_finish;
-			//	size_t value_num = other.size();
-			//	data_allocator::destroy(start, finish);
-			//	new_start = old_start + capacity() / 2;
-			//	new_finish = uninitialized_copy(other.start, other.finish, new_start);
-			//	start = new_start;
-			//	finish = new_finish;
-			//}
-			//else{//容量不够
-			//	
-			//}
-			while (start != finish){
+			while (start != finish){//析构掉原先的元素
 				data_allocator::destroy(start.cur);
 				data_allocator::desrtoy(finish.cur);
 				++start;
+				--finish;
 			}
-
+			for (auto start_temp = other.start; start_temp != other.finish; ++start_temp){//加入新元素，使用pushback
+				this->push_back(*start_temp);
+			}
 		}
 		return *this;
 	}
@@ -150,7 +140,7 @@ namespace MINI_STL{
 	size_t deque<T, Alloc>::capacity(){
 		return map_size*BUFFER_SIZE;
 	}
-
+	
 	
 	template <class T, class Alloc>
 	bool deque<T, Alloc>::operator==(const deque& other){
@@ -173,10 +163,86 @@ namespace MINI_STL{
 	bool deque<T, Alloc>::operator!=(const deque& other){
 		return !(*this == other);
 	}
-
-	/*下面是private函数*/
 	template <class T, class Alloc>
-	void deque<T, Alloc>::reallocate_map(size_type node_to_add, bool add_at_front){//如果map的node不足
+	void deque<T, Alloc>::push_back(const_reference value){
+		if (finish.cur != finish.last - 1){
+			construct(finish.cur, value);//cur所指向的位置没有元素（stl前闭后开决定，然后construct使用指针别用迭代器）
+			++finish;
+		}
+		else{
+			push_back_aux(value);
+		}
+		return;
+	}
+	template <class T, class Alloc>
+	void deque<T, Alloc>::push_front(const_reference value){
+		if (start.cur != start.first){
+			construct(start.cur-1, value);
+			--start;
+		}
+		else{
+			push_front_aux(value);
+		}
+		return;
+	}
+	template <class T, class Alloc>
+	void deque<T, Alloc>::pop_back(){
+		if (finish.cur != finish.first){
+			
+		}
+	}
+	template <class T, class Alloc>
+	void deque<T, Alloc>::pop_front(){
+		auto temp_ptr = start.cur;
+		destroy(temp_ptr);
+		++start;
+	}
+	/*下面是private函数*////////////////////////////
+	template <class T, class Alloc>
+	void deque<T, Alloc>::pop_back_aux(){
+
+	}
+	template <class T, class Alloc>
+	void deque<T, Alloc>::pop_front_aux(){
+
+	}
+	template <class T, class Alloc>
+	void deque<T, Alloc>::push_back_aux(const_reference value){//到了缓冲区结尾的函数
+		value_type value_temp = value;
+		reserve_map_at_back();
+		*(finish.node + 1) = data_allocator::allocate(BUFFER_SIZE);
+		construc(finish.cur, value_temp);
+		finish.set_node(finish.node + 1);
+		finish.cur = finish.first;
+		return;
+	}
+	template <class T, class Alloc>
+	void deque<T, Alloc>::push_front_aux(const_reference value){//已经到了缓冲区头而调用的函数
+		value_type value_temp = value;
+		reserve_map_at_front();
+		*(start.node - 1) = data_allocator::allocate(BUFFER_SIZE);
+		start.set_node(start.node - 1);
+		construct(start.cur, value_temp);
+		return;
+	}
+	template <class T, class Alloc>
+	void deque<T, Alloc>::reserve_map_at_back(size_type nodes_to_add=1){//检查是否需要申请map节点
+		if (nodes_to_add + 1 > map_size - (finish.node - map)){
+			reallocate_map(nodes_to_add, false);
+		}
+	}
+	template <class T, class Alloc>
+	void deque<T, Alloc>::reserve_map_at_front(size_type nodes_to_add = 1){//同上
+		if (nodes_to_add > start.node - map){
+			reallocate_map(nodes_to_add, true);
+		}
+	}
+	/*扩充map节点，但是很重要很重要很重要的一点是，在这里先不对缓冲区申请内存，
+	而是根据所需要的时候来给缓存区分配内存，由此可以节约内存！！！！！*/
+	/************************************************************************/
+	/*重要思想：在需要的时候再分配内存！不要总是预先分配大量内存*/
+	template <class T, class Alloc>
+	void deque<T, Alloc>::reallocate_map(size_type node_to_add, bool add_at_front){
 		size_type old_num_nodes = finish.node - start.node + 1;
 		size_type new_num_nodes = node_to_add + old_num_nodes;
 		map_pointer new_nstart;
