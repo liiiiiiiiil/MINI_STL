@@ -120,8 +120,8 @@ namespace MINI_STL{
 	deque<T, Alloc>& deque<T, Alloc>::operator=(const deque& other){
 		if (*this != other){
 			while (start != finish){//析构掉原先的元素
-				data_allocator::destroy(start.cur);
-				data_allocator::desrtoy(finish.cur);
+				destroy(start.cur);
+				desrtoy(finish.cur);
 				++start;
 				--finish;
 			}
@@ -132,13 +132,49 @@ namespace MINI_STL{
 		return *this;
 	}
 	template <class T, class Alloc>
+	deque<T, Alloc>::~deque(){
+		clear();
+		map_allocator::deallocate(map,map_size);//释放map空间
+		return;
+	}
+	/*以上是构造析构等函数*/
+
+	template <class T, class Alloc>
+	void deque<T, Alloc>::clear(){
+		for (map_pointer node = start.node + 1; node < finish.node; ++node){
+			destroy(*node, *node + DEQUE_BUFFER_SIZE);
+			data_allocator::deallocate(*node, DEQUE_BUFFER_SIZE);
+		}
+		if (start.node != finish.node){
+			destroy(start.cur, start.last);
+			destroy(finish.cur, finish.last);
+			data_allocator::deallocate(finish.first, DEQUE_BUFFER_SIZE);
+		}
+		else{
+			destroy(start.cur, start.last);
+		}
+		finish = start;
+	}
+	template <class T, class Alloc>
+	deque<T, Alloc>::iterator deque<T, Alloc>::erase(iterator position){
+		
+	}
+	template <class T, class Alloc>
+	deque<T, Alloc>::iterator deque<T, Alloc>::erase(iterator first,iterator last){
+
+	}
+	template <class T, class Alloc>
+	deque<T, Alloc>::iterator deque<T, Alloc>::insert(iterator position, const_reference value){
+
+	}
+	template <class T, class Alloc>
 	size_t deque<T, Alloc>::size(){
 		auto result=distance(start, finsh);//返回的是difference_type
 		return  (size_t)result;
 	}
 	template <class T, class Alloc>
 	size_t deque<T, Alloc>::capacity(){
-		return map_size*BUFFER_SIZE;
+		return map_size*DEQUE_BUFFER_SIZE;
 	}
 	
 	
@@ -185,54 +221,75 @@ namespace MINI_STL{
 		}
 		return;
 	}
+	//finish.cur指向的位置没有数据（stl 前闭后开）
 	template <class T, class Alloc>
 	void deque<T, Alloc>::pop_back(){
 		if (finish.cur != finish.first){
-			
+			--finish;
+			destroy(finish.cur);
+		}
+		else{
+			pop_back_aux();
 		}
 	}
 	template <class T, class Alloc>
 	void deque<T, Alloc>::pop_front(){
-		auto temp_ptr = start.cur;
-		destroy(temp_ptr);
-		++start;
+		if (start.cur != start.last - 1){
+			destroy(start.cur);
+			++start;
+		}
+		else{
+			pop_front_aux();
+		}
 	}
 	/*下面是private函数*////////////////////////////
+
+	//到了缓冲区头部c
 	template <class T, class Alloc>
 	void deque<T, Alloc>::pop_back_aux(){
-
+		--finish;
+		data_allocator::deallocate(*(finish.node + 1),DEQUE_BUFFER_SIZE);
+		destroy(finish.cur);
 	}
+	//到了缓冲区尾部
 	template <class T, class Alloc>
 	void deque<T, Alloc>::pop_front_aux(){
+		destroy(start.cur);
+		++start;
+		data_allocator::deallocate(*(start.node - 1),DEQUE_BUFFER_SIZE);
 
 	}
+	//到了缓冲区尾部
 	template <class T, class Alloc>
-	void deque<T, Alloc>::push_back_aux(const_reference value){//到了缓冲区结尾的函数
+	void deque<T, Alloc>::push_back_aux(const_reference value){
 		value_type value_temp = value;
 		reserve_map_at_back();
-		*(finish.node + 1) = data_allocator::allocate(BUFFER_SIZE);
+		*(finish.node + 1) = data_allocator::allocate(DEQUE_BUFFER_SIZE);
 		construc(finish.cur, value_temp);
 		finish.set_node(finish.node + 1);
 		finish.cur = finish.first;
 		return;
 	}
+	//已经到了缓冲区头而调用的函数
 	template <class T, class Alloc>
-	void deque<T, Alloc>::push_front_aux(const_reference value){//已经到了缓冲区头而调用的函数
+	void deque<T, Alloc>::push_front_aux(const_reference value){
 		value_type value_temp = value;
 		reserve_map_at_front();
-		*(start.node - 1) = data_allocator::allocate(BUFFER_SIZE);
+		*(start.node - 1) = data_allocator::allocate(DEQUE_BUFFER_SIZE);
 		start.set_node(start.node - 1);
 		construct(start.cur, value_temp);
 		return;
 	}
+	//检查是否需要申请map节点
 	template <class T, class Alloc>
-	void deque<T, Alloc>::reserve_map_at_back(size_type nodes_to_add=1){//检查是否需要申请map节点
+	void deque<T, Alloc>::reserve_map_at_back(size_type nodes_to_add=1){
 		if (nodes_to_add + 1 > map_size - (finish.node - map)){
 			reallocate_map(nodes_to_add, false);
 		}
 	}
+	//同上
 	template <class T, class Alloc>
-	void deque<T, Alloc>::reserve_map_at_front(size_type nodes_to_add = 1){//同上
+	void deque<T, Alloc>::reserve_map_at_front(size_type nodes_to_add = 1){
 		if (nodes_to_add > start.node - map){
 			reallocate_map(nodes_to_add, true);
 		}
@@ -280,7 +337,7 @@ namespace MINI_STL{
 		create_map_and_nodes(n);
 		map_pointer  cur;
 		for (cur = start.node; cur < finish.node; ++cur){
-			uninitialized_fill(*cur, *cur + BUFFER_SIZE, value);
+			uninitialized_fill(*cur, *cur + DEQUE_BUFFER_SIZE, value);
 		}
 		uninitialized_fill(finish.first, finish.cur, value);
 		return;
@@ -290,24 +347,24 @@ namespace MINI_STL{
 	void deque<T, Alloc>::copy_initialize(InputIterator first,InputIterator last){
 		size_type value_num = last - first+1;
 		create_map_and_nodes(value_num);
-		auto copy_pos = start.first + (map_size*BUFFER_SIZE / 2);
+		auto copy_pos = start.first + (map_size*DEQUE_BUFFER_SIZE / 2);
 		uninitialized_copy(first, last, copy_pos);
 		return;
 	}
 	template <class T, class Alloc>
 	void deque<T, Alloc>::create_map_and_nodes(size_type n=0){
-		size_type num_nodes = n / BUFFER_SIZE + 1;
-		map_size = max(num_nodes+2, FIRST_MAP_SIZE);
+		size_type num_nodes = n / DEQUE_BUFFER_SIZE + 1;
+		map_size = max(num_nodes+2, DEQUE_FIRST_MAP_SIZE);
 		map = map_allocator::allocate(map_size);
 		for (int i = 0; i < map_size; ++i){
-			*(map + i) = data_allocator::allocate(BUFFER_SIZE);
+			*(map + i) = data_allocator::allocate(DEQUE_BUFFER_SIZE);
 		}
 		map_pointer  nstart = map + (map_size-num_nodes)/ 2;
 		map_pointer  nfinish = map + num_nodes - 1;
 		start.set_node(nstart);
 		finish.set_node(nfinish);
 		start.cur = nstart.first;
-		start.cur = nfinish.first + n%BUFFER_SIZE;
+		start.cur = nfinish.first + n%DEQUE_BUFFER_SIZE;
 		return;
 	}
 	/*下面是friend 函数*/

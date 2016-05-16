@@ -62,8 +62,8 @@ namespace MINI_STL{
 			self operator-(difference_type n);
 			reference operator[](difference_type n)const{ return *(*this + n); }
 		private:
-			size_t buffer_size(){
-				return MINI_STL::BUFFER_SIZE;
+			size_t DEQUE_BUFFER_SIZE(){
+				return MINI_STL::DEQUE_BUFFER_SIZE;
 			}
 			void set_node(map_pointer new_node);
 		
@@ -117,9 +117,15 @@ namespace MINI_STL{
 		void push_front(const_reference value);
 		void pop_front();
 		void pop_back();
+		void clear();
+		iterator erase(iterator position);
+		iterator erase(iterator first, iterator last);
+		iterator insert(iterator position, const_reference value);
+		template <class InputIterator>
+		iterator insert(InputIterator first, InputIterator last);
 	private:
 		size_type  map_init_size()const{
-			return FIRST_MAP_SIZE;
+			return DEQUE_FIRST_MAP_SIZE;
 		}
 		void reallocate_map(size_type nodes_to_add, bool add_at_front);
 		void  create_map_and_nodes(size_type n=0);
@@ -141,8 +147,8 @@ namespace MINI_STL{
 		template <class T, class Alloc>
 		friend bool operator!=(const deque<T, Alloc>&lhs, const deque<T, Alloc>&rhs);
 	};
-	static const enum{BUFFER_SIZE=20};
-	static const enum{FIRST_MAP_SIZE=8};
+	static const enum{DEQUE_BUFFER_SIZE=20};
+	static const enum{DEQUE_FIRST_MAP_SIZE=8};
 }
 #include "deque.impl.h"
 #endif
