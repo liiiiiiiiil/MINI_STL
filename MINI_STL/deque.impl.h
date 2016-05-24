@@ -157,11 +157,47 @@ namespace MINI_STL{
 	}
 	template <class T, class Alloc>
 	deque<T, Alloc>::iterator deque<T, Alloc>::erase(iterator position){
-		
+		iterator next = position;
+		++next;
+		difference_type index = pos - start;
+		if (index < size() >> 1){
+			uninitialized_copy_backward(start, position, next);
+			pop_front();
+		}
+		else{
+			uninitialized_copy(next, finish, postion);
+			pop_back();
+		}
+		return start + index; 
 	}
 	template <class T, class Alloc>
 	deque<T, Alloc>::iterator deque<T, Alloc>::erase(iterator first,iterator last){
-
+		if (first == start&&last == finish){
+			clear();
+			return start;
+		}
+		difference_type pre_index = first - start;
+		difference_type next_index = finish - last;
+		difference_type num = last - first;
+		if (pre_index < next_index){
+			iterator new_start = start + n;
+			uninitialized_copy_backward(start, first, last);
+			destroy(start, new_start);
+			for (map_pointer cur = start.node; cur < new_start.node; ++cur){
+				data_allocator::deallocate(*cur, DEQUE_BUFFER_SIZE);
+			}
+			start = new_start;
+		}
+		else{
+			iterator new_finish = finish - num;
+			uninitialized_copy(last, finish, first);
+			destroy(new_finish, finish);
+			for (map_pointer cur = new_finish.node; cur <= finish.node; ++cur){
+				data_allocator::deallocate(*cur, DEQUE_BUFFER_SIZE);
+			}
+			finish = new_finish;
+		}
+		return start + pre_index;
 	}
 	template <class T, class Alloc>
 	deque<T, Alloc>::iterator deque<T, Alloc>::insert(iterator position, const_reference value){

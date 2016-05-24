@@ -19,7 +19,7 @@ namespace MINI_STL{
 		int i = 0;
 		for (; first != last; first++, i++){
 			construct(result + i, *first);
-		}
+		} 
 		return result + i;
 	}
 	template <class InputIterator,class ForwardIterator>
