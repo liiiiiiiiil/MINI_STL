@@ -96,6 +96,7 @@ namespace MINI_STL{
 		void insert_aux(iterator position, InputIterator first, InputIterator last, std::false_type);
 		template<class Integer>
 		void insert_aux(iterator position, Integer n, const value_type& x, std::true_type);
+
 		
 		template <class InputIterator>
 		void reallocateAndCopy(iterator position, InputIterator first, InputIterator last);

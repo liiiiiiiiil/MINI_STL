@@ -120,9 +120,10 @@ namespace MINI_STL{
 		void clear();
 		iterator erase(iterator position);
 		iterator erase(iterator first, iterator last);
+		iterator insert(iterator position,size_type n,const_reference value);
 		iterator insert(iterator position, const_reference value);
 		template <class InputIterator>
-		iterator insert(InputIterator first, InputIterator last);
+		iterator insert(iterator positon,InputIterator first, InputIterator last);
 	private:
 		size_type  map_init_size()const{
 			return DEQUE_FIRST_MAP_SIZE;
@@ -141,6 +142,11 @@ namespace MINI_STL{
 		void pop_back_aux();
 		void reserve_map_at_back(size_type nodes_to_add);//检查pushback是否需要扩充map
 		void reserve_map_at_front(size_type nodes_to_add);
+		template <class integer>
+		iterator insert_aux(iterator pos,integer n, const_reference value,std::true_type);
+		template <class InputIterator>
+		iterator insert_aux(iterator pos, iterator first, iterator last, std::false_type);
+
 	public:
 		template <class T,class Alloc>
 		friend bool operator==(const deque<T, Alloc>&lhs, const deque<T, Alloc>&rhs);
