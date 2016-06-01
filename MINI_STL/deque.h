@@ -145,7 +145,7 @@ namespace MINI_STL{
 		template <class integer>
 		iterator insert_aux(iterator pos,integer n, const_reference value,std::true_type);
 		template <class InputIterator>
-		iterator insert_aux(iterator pos, iterator first, iterator last, std::false_type);
+		iterator insert_aux(iterator pos, InputIterator first, InputIterator last, std::false_type);
 
 	public:
 		template <class T,class Alloc>

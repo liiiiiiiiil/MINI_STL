@@ -297,7 +297,7 @@ namespace MINI_STL{
 	deque<T, Alloc>::iterator deque<T, Alloc>::insert_aux(iterator position, Integer n,
 		const_reference value, std::true_type){
 		difference_type index_before = position - start;
-		if (index_before < DEQUE_BUFFER_SIZE/2){//从前面插入
+		if (index_before < DEQUE_BUFFER_SIZE/2){//移动前面的元素
 			if (n < start.cur - start.first){//空间足够
 				iterator new_start = start - n;
 				uninitialized_copy(start, position, new_start);
@@ -318,7 +318,7 @@ namespace MINI_STL{
 				return position - n;
 			}
 		}
-		else{//从后面插入
+		else{//移动后面元素
 			if (n < finish.last - finish.cur){//空间足够
 				auto new_finish = finish + n;
 				uninitialized_copy_backward(position, finish, new_finish);
@@ -345,7 +345,51 @@ namespace MINI_STL{
 	template<class Inputiterator>
 	deque<T, Alloc>::iterator deque<T, Alloc>::insert_aux(iterator position, Inputiterator first,
 		Inputiterator last, std::false_type){
-
+		difference_type n = last - first;
+		difference_type index_before = position - start;
+		if (index_before < DEQUE_BUFFER_SIZE / 2){//移动前面的元素
+			if (n < start.cur - start.first){//空间足够
+				iterator new_start = start - n;
+				uninitialized_copy(start, position, new_start);
+				uninitialized_copy(first, last, position - n)
+				start = new_start;
+				return position - n;
+			}
+			else{//空间不足,申请新空间
+				size_t nodes_to_add = (n - index_before) / DEQUE_BUFFER_SIZE + 1;
+				reserve_map_at_front(nodes_to_add);
+				for (int i = 1; i <= nodes_to_add; ++i){
+					*(start.node - i) = data_allocator::allocate(DEQUE_BUFFER_SIZE);
+				}
+				auto new_start = start - n;
+				uninitialized_copy(start, position, new_start);
+				uninitialized_copy(first, last, position - n)
+				start = new_start;
+				return position - n;
+			}
+		}
+		else{//移动后面元素
+			if (n < finish.last - finish.cur){//空间足够
+				auto new_finish = finish + n;
+				uninitialized_copy_backward(position, finish, new_finish);
+				uninitialized_copy(first, last, position);
+				finish = new_finish;
+				return position + n;
+			}
+			else{//空间不足
+				size_type index_after = finish.last - finish.cur;
+				size_t nodes_to_add = (n - index_after) / DEQUE_BUFFER_SIZE + 1;
+				reserve_map_at_back(nodes_to_add);
+				for (int i = 1; i <= nodes_to_add; ++i){
+					*(finish.node + i) = data_allocator::allocate(DEQUE_BUFFER_SIZE);
+				}
+				auto new_finish = finish + n;
+				uninitialized_copy_backward(position, finish, new_finish);
+				uninitialized_copy(first, last, position);
+				finish = new_finish;
+				return position + n;
+			}
+		}
 	}
 
 	//到了缓冲区头部c
